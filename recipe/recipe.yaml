@@ -4,7 +4,7 @@ context:
   name: python-mumps
   version: "0.0.6"
   mpi: ${{ mpi or "nompi" }}
-  build_number: 1
+  build_number: 2
 
 package:
   name: ${{ name|lower }}
@@ -16,11 +16,13 @@ source:
   patches:
     - if: win
       then: patches/0001-meson-windows-fallback.patch
+    - if: match(python, "<3.12")
+      then: patches/0002-python-version.patch
 
 build:
   number: ${{ build_number + (100 if mpi == "nompi" else 0) }}
   string: ${{ "nompi" if mpi == "nompi" else "mpi_" + mpi }}_h${{ hash }}
-  skip: match(python, "<3.12") or python_impl == 'pypy'
+  skip: python_impl == 'pypy'
 
 requirements:
   build:
@@ -72,7 +74,9 @@ tests:
         run:
           - pytest
       script:
-        - python -P -m pytest -v --import-mode=importlib --pyargs mumps -m "not mpi"
+        - if: match(python, "<3.11")
+          then: python -m pytest -v --import-mode=importlib --pyargs mumps -m "not mpi"
+          else: python -P -m pytest -v --import-mode=importlib --pyargs mumps -m "not mpi"
   - if: not win and mpi != "nompi"
     then:
       requirements:
@@ -81,7 +85,9 @@ tests:
           - mpi4py
           - pytest-mpi
       script:
-        - mpirun -n 2 python -P -m pytest -v -rs --import-mode=importlib --pyargs mumps -m mpi --with-mpi
+      - if: match(python, "<3.11")
+        then: mpirun -n 2 python -m pytest -v -rs --import-mode=importlib --pyargs mumps -m mpi --with-mpi
+        else: mpirun -n 2 python -P -m pytest -v -rs --import-mode=importlib --pyargs mumps -m mpi --with-mpi
 
 about:
   summary: Bindings and Python interface for the MUMPS sparse solver
