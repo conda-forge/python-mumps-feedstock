@@ -4,7 +4,7 @@ context:
   name: python-mumps
   version: "0.0.6"
   mpi: ${{ mpi or "nompi" }}
-  build_number: 2
+  build_number: 3
 
 package:
   name: ${{ name|lower }}
@@ -85,9 +85,9 @@ tests:
           - mpi4py
           - pytest-mpi
       script:
-      - if: match(python, "<3.11")
-        then: mpirun -n 2 python -m pytest -v -rs --import-mode=importlib --pyargs mumps -m mpi --with-mpi
-        else: mpirun -n 2 python -P -m pytest -v -rs --import-mode=importlib --pyargs mumps -m mpi --with-mpi
+        - if: match(python, "<3.11")
+          then: mpirun -n 2 python -m pytest -v -rs --import-mode=importlib --pyargs mumps -m mpi --with-mpi
+          else: mpirun -n 2 python -P -m pytest -v -rs --import-mode=importlib --pyargs mumps -m mpi --with-mpi
 
 about:
   summary: Bindings and Python interface for the MUMPS sparse solver
