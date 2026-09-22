@@ -4,7 +4,7 @@ context:
   name: python-mumps
   version: "0.0.6"
   mpi: ${{ mpi or "nompi" }}
-  build_number: 2
+  build_number: 3
 
 package:
   name: ${{ name|lower }}
@@ -14,6 +14,7 @@ source:
   url: https://pypi.org/packages/source/${{ name[0] }}/${{ name }}/python_mumps-${{ version }}.tar.gz
   sha256: 58c33104f77c448e127e9e6da316f71dfb1a17719ecf022634669d513306b1fa
   patches:
+    - patches/0003-slogdet-test-reference.patch
     - if: win
       then: patches/0001-meson-windows-fallback.patch
     - if: match(python, "<3.12")
@@ -85,9 +86,9 @@ tests:
           - mpi4py
           - pytest-mpi
       script:
-      - if: match(python, "<3.11")
-        then: mpirun -n 2 python -m pytest -v -rs --import-mode=importlib --pyargs mumps -m mpi --with-mpi
-        else: mpirun -n 2 python -P -m pytest -v -rs --import-mode=importlib --pyargs mumps -m mpi --with-mpi
+        - if: match(python, "<3.11")
+          then: mpirun -n 2 python -m pytest -v -rs --import-mode=importlib --pyargs mumps -m mpi --with-mpi
+          else: mpirun -n 2 python -P -m pytest -v -rs --import-mode=importlib --pyargs mumps -m mpi --with-mpi
 
 about:
   summary: Bindings and Python interface for the MUMPS sparse solver
