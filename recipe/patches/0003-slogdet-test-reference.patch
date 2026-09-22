@@ -1,0 +1,22 @@
+Use a logarithmic dense reference to avoid single-precision determinant overflow.
+Keep all matrix sizes, dtypes, tolerances, and singular-matrix checks unchanged.
+
+diff --git a/src/mumps/tests/test_mumps.py b/src/mumps/tests/test_mumps.py
+--- a/src/mumps/tests/test_mumps.py
++++ b/src/mumps/tests/test_mumps.py
+@@ -330,11 +330,11 @@ def test_slogdet_with_dense(dtype, mat_size):
+     a = rand.randmat(mat_size, mat_size, dtype)
+     ctx = Context()
+     sign, logabsdet = ctx.slogdet(sp.csr_matrix(a))
+-    # relative comparison of large numbers
+-    det = la.det(a)
++    # Compare in log space: the determinant can overflow in single precision.
++    ref_sign, ref_logabsdet = np.linalg.slogdet(a)
+     if ctx.myid == 0:
+-        assert_almost_equal(dtype, sign, det / np.abs(det))
+-        assert_almost_equal(dtype, logabsdet, np.log(np.abs(det)))
++        assert_almost_equal(dtype, sign, ref_sign)
++        assert_almost_equal(dtype, logabsdet, ref_logabsdet)
+ 
+     # test singular matrix
+     b = np.zeros((mat_size + 1, mat_size + 1), dtype)
